@@ -3,7 +3,7 @@ __pycache__/
 *.py[cod]
 *$py.class
 
-*_wiki/
+all_wiki/
 
 # Distribution / packaging
 .Python

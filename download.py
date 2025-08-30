@@ -128,7 +128,7 @@ def create_pdf_from_cache(cache_folder, pdf_output_folder, styles):
         doc = SimpleDocTemplate(pdf_filepath, pagesize=letter)
         story = []
         
-        print(f"\\nCreating PDF: {pdf_filename}")
+        print(f"\nCreating PDF: {pdf_filename}")
         
         for filename in chunk:
             page_title = os.path.splitext(filename)[0]
@@ -140,7 +140,7 @@ def create_pdf_from_cache(cache_folder, pdf_output_folder, styles):
             story.append(Paragraph(html.escape(page_title), styles['h1']))
             story.append(Spacer(1, 18))
 
-            for para_text in content.split('\\n\\n'):
+            for para_text in content.split('\n\n'):
                 para_text = para_text.strip()
                 if para_text:
                     story.append(Paragraph(html.escape(para_text), styles['BodyText']))
@@ -154,18 +154,26 @@ def create_pdf_from_cache(cache_folder, pdf_output_folder, styles):
         except Exception as e:
             print(f"  Error building PDF {pdf_filename}: {e}")
 
-def download_entire_wiki_to_pdf(base_url, output_filename="full_wiki.pdf"):
+def download_entire_wiki_to_pdf(base_url):
     """
-    Downloads an entire wiki, caches it to text files, and converts it into a single PDF.
+    Downloads an entire wiki, caches it to text files, and converts it into multiple PDFs.
 
     Args:
         base_url (str): The base URL of the wiki.
-        output_filename (str): The name of the output PDF file.
     """
+    parent_folder = "all_wiki"
+    if not os.path.exists(parent_folder):
+        os.makedirs(parent_folder)
+
     parsed_url = urlparse(base_url)
-    cache_folder = sanitize_filename(parsed_url.netloc + "_wiki")
+    sanitized_domain = sanitize_filename(parsed_url.netloc)
+    cache_folder = os.path.join(parent_folder, f"{sanitized_domain}_txt")
+    pdf_output_folder = os.path.join(parent_folder, f"{sanitized_domain}_wiki_PDF")
+
     if not os.path.exists(cache_folder):
         os.makedirs(cache_folder)
+    if not os.path.exists(pdf_output_folder):
+        os.makedirs(pdf_output_folder)
 
     page_urls = get_all_page_urls(base_url)
     
@@ -179,9 +187,9 @@ def download_entire_wiki_to_pdf(base_url, output_filename="full_wiki.pdf"):
         print(f"Processing page {i+1}/{len(page_urls)}")
         get_page_content_and_save(page_url, cache_folder, force_download=is_last)
 
-    # Create PDF from cached files
+    # Create PDFs from cached files
     styles = getSampleStyleSheet()
-    create_pdf_from_cache(cache_folder, output_filename, styles)
+    create_pdf_from_cache(cache_folder, pdf_output_folder, styles)
 
 if __name__ == '__main__':
     if len(sys.argv) > 1:
@@ -189,9 +197,7 @@ if __name__ == '__main__':
         parsed_url = urlparse(url_to_download)
         base_url = f"{parsed_url.scheme}://{parsed_url.netloc}"
         
-        safe_file_name = sanitize_filename(parsed_url.netloc) + "_wiki.pdf"
-        
-        download_entire_wiki_to_pdf(base_url, safe_file_name)
+        download_entire_wiki_to_pdf(base_url)
     else:
         print("Usage: python download.py <any_url_from_the_wiki>")
         print("\nNo URL provided. Running with a default example...")
