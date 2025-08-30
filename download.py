@@ -18,7 +18,7 @@ DOWNLOAD_DELAY = .1
 
 def sanitize_filename(filename):
     """Sanitizes a string to be a valid filename."""
-    return re.sub(r'[\\/*?"<>|]', "_", filename)
+    return re.sub(r'[:\\/*?"<>|]', "_", filename)
 
 def get_all_page_urls(base_url):
     """
