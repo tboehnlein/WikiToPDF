@@ -17,6 +17,12 @@ WikiToPDF is a Python script that downloads an entire MediaWiki-based wiki and c
 
 Sometimes the page doesn't download. Still unsure why this happening since so many other pages download just fine.
 
+## Future Ideas
+
+- Error handling for download fails to try again.
+- Timer to avoid overloading the server.
+- Timestamp handling to only update pages with new information.
+
 ## Usage
 
 To use the script, run it from the command line with the URL of any page on the target wiki:
