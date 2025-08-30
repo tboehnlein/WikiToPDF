@@ -13,6 +13,10 @@ WikiToPDF is a Python script that downloads an entire MediaWiki-based wiki and c
 - **Batch Processing**: To avoid creating a single, massive PDF file, the script splits the output into multiple PDFs, with each PDF containing 100 pages.
 - **Organized Output**: The script creates a main `all_wiki` directory. Inside this directory, it creates a folder for the cached text files (e.g., `terraria_fandom_com_txt`) and a separate folder for the generated PDFs (e.g., `terraria_fandom_com_wiki_PDF`), keeping your project directory clean and organized.
 
+## Known Bugs
+
+Sometimes the page doesn't download. Still unsure why this happening so many other pages download just fine.
+
 ## Usage
 
 To use the script, run it from the command line with the URL of any page on the target wiki:
