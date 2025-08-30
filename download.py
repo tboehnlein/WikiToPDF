@@ -5,9 +5,16 @@ from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, PageBreak
 from reportlab.lib.styles import getSampleStyleSheet
 import sys
 import os
-from urllib.parse import urljoin, urlparse
+from urllib.parse import urljoin, urlparse, parse_qs
 import re
 import html
+import json
+import time
+
+# List of URL endings to ignore
+IGNORED_URL_ENDINGS = ["/cs"]
+# Delay between downloads in seconds
+DOWNLOAD_DELAY = .1
 
 def sanitize_filename(filename):
     """Sanitizes a string to be a valid filename."""
@@ -15,7 +22,7 @@ def sanitize_filename(filename):
 
 def get_all_page_urls(base_url):
     """
-    Gets all page URLs from a MediaWiki site by scraping the Special:AllPages page.
+    Gets all page URLs from a MediaWiki site using the API.
 
     Args:
         base_url (str): The base URL of the wiki (e.g., https://en.wikipedia.org).
@@ -23,35 +30,47 @@ def get_all_page_urls(base_url):
     Returns:
         list: A list of full URLs for all pages in the wiki.
     """
-    all_pages_url = urljoin(base_url, "wiki/Special:AllPages")
+    api_url = urljoin(base_url, "api.php")
     page_urls = []
-    
-    print(f"Starting to scrape from: {all_pages_url}")
+    params = {
+        "action": "query",
+        "format": "json",
+        "list": "allpages",
+        "aplimit": "max"
+    }
 
-    while all_pages_url:
+    print(f"Fetching page list from API: {api_url}")
+
+    while True:
         try:
-            headers = {'User-Agent': 'WikiToPDF/3.0'}
-            response = requests.get(all_pages_url, headers=headers)
+            response = requests.get(api_url, params=params)
             response.raise_for_status()
+            data = response.json()
         except requests.exceptions.RequestException as e:
-            print(f"Error downloading page list: {e}")
+            print(f"Error querying API: {e}")
+            break
+        except json.JSONDecodeError:
+            print("Error decoding JSON from API response.")
             break
 
-        soup = BeautifulSoup(response.text, 'html.parser')
-        
-        page_list = soup.find('div', class_='mw-allpages-body')
-        if page_list:
-            for a in page_list.find_all('a', href=True):
-                page_urls.append(urljoin(base_url, a['href']))
+        pages = data.get("query", {}).get("allpages", [])
+        for page in pages:
+            title = page["title"]
+            page_url = urljoin(api_url, f"index.php?title={title.replace(' ', '_')}")
+            page_urls.append(page_url)
 
-        next_page_link = soup.find('a', text=lambda t: t and t.startswith('Next page'))
-        if next_page_link:
-            all_pages_url = urljoin(base_url, next_page_link['href'])
-            print(f"Found next page: {all_pages_url}")
+        if "continue" in data:
+            params["apcontinue"] = data["continue"]["apcontinue"]
+            print(f"  ...continuing with next batch of pages.")
+            time.sleep(DOWNLOAD_DELAY)
         else:
-            all_pages_url = None
-            
-    return page_urls
+            break
+    
+    # Filter out ignored URLs
+    filtered_urls = [url for url in page_urls if not any(url.endswith(ending) for ending in IGNORED_URL_ENDINGS)]
+    print(f"Found {len(page_urls)} pages, {len(filtered_urls)} after filtering.")
+
+    return filtered_urls
 
 def get_page_content_and_save(page_url, cache_folder, force_download=False):
     """
@@ -66,7 +85,13 @@ def get_page_content_and_save(page_url, cache_folder, force_download=False):
     Returns:
         tuple: (page_title, page_text_content)
     """
-    page_title = page_url.split('/')[-1].replace('_', ' ')
+    parsed_url = urlparse(page_url)
+    query_params = parse_qs(parsed_url.query)
+    if 'title' in query_params:
+        page_title = query_params['title'][0].replace('_', ' ')
+    else:
+        page_title = page_url.split('/')[-1].replace('_', ' ') # Fallback
+
     sanitized_title = sanitize_filename(page_title)
     filepath = os.path.join(cache_folder, f"{sanitized_title}.txt")
 
@@ -77,6 +102,7 @@ def get_page_content_and_save(page_url, cache_folder, force_download=False):
 
     print(f"  Downloading: {page_url}")
     try:
+        time.sleep(DOWNLOAD_DELAY)
         headers = {'User-Agent': 'WikiToPDF/3.0'}
         response = requests.get(page_url, headers=headers)
         response.raise_for_status()
@@ -87,7 +113,10 @@ def get_page_content_and_save(page_url, cache_folder, force_download=False):
     soup = BeautifulSoup(response.text, 'html.parser')
     content_div = soup.find(id="mw-content-text")
     if not content_div:
-        return page_title, ""
+        # Fallback for wikis that might not have mw-content-text
+        content_div = soup.find('div', class_='mw-parser-output')
+        if not content_div:
+            return page_title, ""
 
     # Remove unwanted elements
     for unwanted in content_div.find_all(['div', 'table', 'ul', 'ol', 'span', 'img', 'figure'],
@@ -201,5 +230,5 @@ if __name__ == '__main__':
     else:
         print("Usage: python download.py <any_url_from_the_wiki>")
         print("\nNo URL provided. Running with a default example...")
-        default_url = "https://terraria.fandom.com/wiki/Terraria_Wiki"
+        default_url = "https://vampire.survivors.wiki/"
         download_entire_wiki_to_pdf(default_url)

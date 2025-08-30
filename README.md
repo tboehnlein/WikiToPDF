@@ -6,8 +6,10 @@ WikiToPDF is a Python script that downloads an entire MediaWiki-based wiki and c
 
 ## Features
 
-- **Full Wiki Scraping**: The script can crawl an entire wiki, starting from the `Special:AllPages` page and following all "Next page" links to ensure every page is captured.
+- **Robust Wiki Scraping**: The script uses the official MediaWiki API to fetch a list of all pages, making it compatible with a wide range of wikis.
+- **URL Filtering**: You can specify a list of URL endings to ignore (e.g., for different languages), preventing the script from downloading unnecessary pages.
 - **Local Caching**: To save time and bandwidth on subsequent runs, the script caches the text content of each wiki page in a local folder. It will only download a page if it's not already in the cache.
+- **Polite Downloading**: A configurable delay between downloads prevents the script from overloading the wiki's servers.
 - **Robust Error Handling**: The script is designed to handle interruptions. If a download is stopped prematurely, it will re-download the last page on the next run to ensure the cache is not corrupted.
 - **PDF Generation**: The script converts the cached text files into a series of PDF files, with each wiki page as a separate chapter.
 - **Batch Processing**: To avoid creating a single, massive PDF file, the script splits the output into multiple PDFs, with each PDF containing 100 pages.
@@ -19,9 +21,8 @@ Sometimes the page doesn't download. Still unsure why this happening since so ma
 
 ## Future Ideas
 
-- Error handling for download fails to try again.
-- Timer to avoid overloading the server.
-- Timestamp handling to only update pages with new information.
+- **Enhanced Error Handling**: Implement a retry mechanism for failed downloads.
+- **Timestamp Handling**: Only update pages that have been modified since their last download.
 
 ## Usage
 
