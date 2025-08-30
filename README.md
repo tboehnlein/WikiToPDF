@@ -2,7 +2,7 @@
 
 Traversing video game wikis is very time consuming and can accidetally lead to spoilers being uncovered. By switching to using a language model you can ask specific questions and quickly get information about the game.  You do lose all visual information but the new flexibility of information makes up for it. I've also found it helpful for understanding basic game play mechanics I might have missed out on discovering.
 
-WikiToPDF is a Python script that downloads an entire MediaWiki-based wiki and converts it into a series of PDF files. It is designed to be a powerful tool for creating an interactive version of any game wiki.
+WikiToPDF is a Python script that downloads an entire MediaWiki-based wiki and converts it into a series of PDF files. It is designed to be a powerful tool for creating an interactive version of any game wiki by putting it into a format that can be read by Gemini's NotebookLM product.
 
 ## Features
 
