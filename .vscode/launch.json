@@ -1,0 +1,54 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python Debugger: Python File",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}\\download.py",
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "Python Debugger: WikiToPDF with URL",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}\\download.py",
+            "console": "integratedTerminal",
+            "args": [
+                "${input:wikiUrl}"
+            ]
+        },
+        {
+            "name": "Peak Wiki",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}\\download.py",
+            "console": "integratedTerminal",
+            "args": ["https://peak.wiki.gg/"]
+        },
+        {
+            "name": "Schedule I Wiki",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}\\download.py",
+            "console": "integratedTerminal",
+            "args": ["https://schedule-1.fandom.com/wiki/Schedule_1_Wiki"]
+        },
+        {
+            "name": "Terraria Wiki",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}\\download.py",
+            "console": "integratedTerminal",
+            "args": ["https://terraria.fandom.com/wiki/Terraria_Wiki"]
+        },
+    ],
+    "inputs": [
+        {
+            "id": "wikiUrl",
+            "type": "promptString",
+            "description": "Enter the Wikipedia URL to download",
+            "default": "https://en.wikipedia.org/wiki/Python_(programming_language)"
+        }
+    ]
+}
